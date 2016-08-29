@@ -1,5 +1,5 @@
-import urllib.parse
-import urllib.request
+from urllib import parse
+from urllib import request
 import os, re, sys
 
 # Бета 0.2
@@ -22,9 +22,16 @@ def take_full_file_name(html_tag):
         i += 1
     return html_tag[i+1:name_end-1]
 
+def download_image(link, name):
+    """Скачивание изображения по ссылке"""
+    image_file = open(name, 'wb')
+    image_file.write(request.urlopen(link).read())
+    image_file.close()
+    print("Изображение", name, "скачано!\n")
+
 # Парсинг ссылки
 LINK = sys.argv[1]
-url = urllib.parse.urlparse(LINK)
+url = parse.urlparse(LINK)
 site = url.scheme + '://' + url.netloc
 print("Открыт сайт: ", site)
 print("Ваша ссылка: ", LINK, "\n")
@@ -40,23 +47,19 @@ except FileExistsError:
 print("Переход в", os.getcwd(), '\n')
 
 # Получение списка ссылок на посты с пикчами из html-кода
-posts_html = re.findall('/posts/\d*\d', str((urllib.request.urlopen(LINK)).read()))
+posts_html = re.findall('/posts/\d*\d', str((request.urlopen(LINK)).read()))
 posts_links = []
 
 for post in posts_html:
 
     # Обработка поста
     print("Пост", site + post, "открыт.")
-    original_pic = re.findall('data-large-file-url="/[_,\w, /]+.\w+\.jpg"', str((urllib.request.urlopen(site+post)).read()))
+    original_pic = re.findall('data-large-file-url="/[_,\w, /]+.\w+"', str((request.urlopen(site+post)).read()))
     print(original_pic)
-    print("Обнаружено", len(original_pic), "изображений. Будут скачаны все [beta: почти все].")
+    print("Обнаружено", len(original_pic), "изображений. [beta: почти все будут скачаны].")
     image_full_name = take_full_file_name(original_pic[0])
     image_name = take_file_name(original_pic[0])
     print("Ссылка:", site+image_full_name)
 
     # Скачивание изображения(й)
-    image_link = urllib.request.urlopen(site+image_full_name)
-    image_file = open(image_name, 'wb')
-    image_file.write(image_link.read())
-    image_file.close()
-    print("Изображение", image_name, "скачано!\n")
+    download_image(site+image_full_name, image_name)
