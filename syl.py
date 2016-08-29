@@ -10,10 +10,10 @@ class Image(object):
     def download(self):
         """Скачивание изображения по ссылке"""
         file = open(self.name, "wb")
-        print('\t',"Ссылка:", self.link)
+        print("\tСсылка:", self.link)
         file.write(request.urlopen(self.link).read())
         file.close()
-        print('\t',"Изображение", self.name, "скачано успешно")
+        print("\tИзображение", self.name, "скачано успешно")
 
 def html_parser(link, regexp):
     """Поиск по регулярному выражению regexp в html-коде ссылки на страницу link"""
@@ -62,8 +62,8 @@ for post in posts_html:
     post_num += 1
     print(str(post_num)+") Открыт пост", site + post)
     pics = html_parser(site+post, 'data-large-file-url="/[_,\w, /]+.\w+\.[j,p,e,g,p,n,g]+"')
-    print('\t',"Обнаружено изображений:", len(pics))
+    print("\tОбнаружено изображений:", len(pics))
     for i in pics:
-        print('\t',"Ресурс:", i)
+        print("\tРесурс:", i)
         image = Image(site+take_full_file_name(i), take_file_name(i))
         image.download()
