@@ -2,9 +2,32 @@ from urllib import parse
 from urllib import request
 import os, re, sys
 
-# Бета 0.2
-# TODO: Починить хентай-баг (отсутствие множественного выкачивания пикч)
-# TODO: Разбить на функции и классы
+class Image(object):
+    def __init__(self, link, name):
+        self.link = link
+        self.name = name
+
+    def download(self):
+        """Скачивание изображения по ссылке"""
+        file = open(self.name, "wb")
+        print("Ссылка:", self.link)
+        file.write(request.urlopen(self.link).read())
+        file.close()
+        print("Изображение", self.name, "скачано успешно\n")
+
+def html_parser(link, regexp):
+    """Поиск по регулярному выражению regexp в html-коде ссылки на страницу link"""
+    return re.findall(regexp, str((request.urlopen(link)).read()))
+
+def create_backup_dir(dirname = "loli_backup"):
+    """Создание директории под скачанные изображения"""
+    try:
+        os.mkdir(dirname, 777)
+        os.chdir(dirname)
+    except FileExistsError:
+        print("Папка уже создана!")
+        os.chdir(dirname)
+    print("Переход в", os.getcwd(), '\n')
 
 def take_file_name(server_name):
     """Задает имя для изображения, согласно хранимому на сервере"""
@@ -22,13 +45,6 @@ def take_full_file_name(html_tag):
         i += 1
     return html_tag[i+1:name_end-1]
 
-def download_image(link, name):
-    """Скачивание изображения по ссылке"""
-    image_file = open(name, 'wb')
-    image_file.write(request.urlopen(link).read())
-    image_file.close()
-    print("Изображение", name, "скачано!\n")
-
 # Парсинг ссылки
 LINK = sys.argv[1]
 url = parse.urlparse(LINK)
@@ -37,29 +53,16 @@ print("Открыт сайт: ", site)
 print("Ваша ссылка: ", LINK, "\n")
 
 # Создание директории под аниме-пикчи
-BACKUP_DIRECTORY = "loli_backup"
-try:
-    os.mkdir(BACKUP_DIRECTORY, 777)
-    os.chdir(BACKUP_DIRECTORY)
-except FileExistsError:
-    print("Папка уже создана!")
-    os.chdir(BACKUP_DIRECTORY)
-print("Переход в", os.getcwd(), '\n')
+create_backup_dir()
 
 # Получение списка ссылок на посты с пикчами из html-кода
-posts_html = re.findall('/posts/\d*\d', str((request.urlopen(LINK)).read()))
-posts_links = []
+posts_html = html_parser(LINK, '/posts/\d*\d')
 
 for post in posts_html:
-
-    # Обработка поста
-    print("Пост", site + post, "открыт.")
-    original_pic = re.findall('data-large-file-url="/[_,\w, /]+.\w+"', str((request.urlopen(site+post)).read()))
-    print(original_pic)
-    print("Обнаружено", len(original_pic), "изображений. [beta: почти все будут скачаны].")
-    image_full_name = take_full_file_name(original_pic[0])
-    image_name = take_file_name(original_pic[0])
-    print("Ссылка:", site+image_full_name)
-
-    # Скачивание изображения(й)
-    download_image(site+image_full_name, image_name)
+    print("Открыт пост", site + post)
+    pics = html_parser(site+post, 'data-large-file-url="/[_,\w, /]+.\w+\.jpg"')
+    print("Обнаружено изображений [jpg]:", len(pics))
+    for i in pics:
+        print("Ресурс:", i)
+        image = Image(site+take_full_file_name(i), take_file_name(i))
+        image.download()
