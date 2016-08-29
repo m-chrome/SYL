@@ -10,10 +10,10 @@ class Image(object):
     def download(self):
         """Скачивание изображения по ссылке"""
         file = open(self.name, "wb")
-        print("Ссылка:", self.link)
+        print('\t',"Ссылка:", self.link)
         file.write(request.urlopen(self.link).read())
         file.close()
-        print("Изображение", self.name, "скачано успешно\n")
+        print('\t',"Изображение", self.name, "скачано успешно")
 
 def html_parser(link, regexp):
     """Поиск по регулярному выражению regexp в html-коде ссылки на страницу link"""
@@ -57,12 +57,13 @@ create_backup_dir()
 
 # Получение списка ссылок на посты с пикчами из html-кода
 posts_html = html_parser(LINK, '/posts/\d*\d')
-
+post_num = 0
 for post in posts_html:
-    print("Открыт пост", site + post)
-    pics = html_parser(site+post, 'data-large-file-url="/[_,\w, /]+.\w+\.jpg"')
-    print("Обнаружено изображений [jpg]:", len(pics))
+    post_num += 1
+    print(str(post_num)+") Открыт пост", site + post)
+    pics = html_parser(site+post, 'data-large-file-url="/[_,\w, /]+.\w+\.[j,p,e,g,p,n,g]+"')
+    print('\t',"Обнаружено изображений:", len(pics))
     for i in pics:
-        print("Ресурс:", i)
+        print('\t',"Ресурс:", i)
         image = Image(site+take_full_file_name(i), take_file_name(i))
         image.download()
