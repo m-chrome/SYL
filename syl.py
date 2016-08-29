@@ -2,13 +2,28 @@ import urllib.parse
 import urllib.request
 import os, re, sys
 
-# Бета 0.1
+# Бета 0.2
 # TODO: Починить хентай-баг (отсутствие множественного выкачивания пикч)
-# TODO: Починить баг с неправильной обрезкой имени
 # TODO: Разбить на функции и классы
 
+def take_file_name(server_name):
+    """Задает имя для изображения, согласно хранимому на сервере"""
+    name_end = i = len(server_name)-1
+    while server_name[i] != '/':
+        i -= 1
+    name_begin = i+1
+    return server_name[name_begin: name_end]
+
+def take_full_file_name(html_tag):
+    """Извлекает полное имя файла из html-тэга"""
+    i = 0
+    name_end = len(html_tag)
+    while html_tag[i] != "\"":
+        i += 1
+    return html_tag[i+1:name_end-1]
+
 # Парсинг ссылки
-LINK = str(sys.argv[1])
+LINK = sys.argv[1]
 url = urllib.parse.urlparse(LINK)
 site = url.scheme + '://' + url.netloc
 print("Открыт сайт: ", site)
@@ -32,15 +47,15 @@ for post in posts_html:
 
     # Обработка поста
     print("Пост", site + post, "открыт.")
-    original_pic = re.findall('data-large-file-url="[_,\w, /]+.\w+.jpg"', str((urllib.request.urlopen(site+post)).read()))
+    original_pic = re.findall('data-large-file-url="/[_,\w, /]+.\w+\.jpg"', str((urllib.request.urlopen(site+post)).read()))
     print(original_pic)
     print("Обнаружено", len(original_pic), "изображений. Будут скачаны все [beta: почти все].")
-    pic = original_pic[0][21:len(original_pic[0])-1]
-    image_name = pic[13:]
-    print("Ссылка:", site+pic)
+    image_full_name = take_full_file_name(original_pic[0])
+    image_name = take_file_name(original_pic[0])
+    print("Ссылка:", site+image_full_name)
 
     # Скачивание изображения(й)
-    image_link = urllib.request.urlopen(site+pic)
+    image_link = urllib.request.urlopen(site+image_full_name)
     image_file = open(image_name, 'wb')
     image_file.write(image_link.read())
     image_file.close()
