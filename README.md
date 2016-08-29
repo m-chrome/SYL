@@ -1,8 +1,7 @@
 # SYL
-Скрипт, позволяющий скачивать изображения с Danbooru.
+Скрипт, позволяющий скачивать изображения с Danbooru. 
 
-Запустить ему можно следующей командой:
+Запустить его можно следующей командой:
 
-Windows:	C:\<path_to_Python>\python.exe syl.py <ссылка>
-
+Windows:	<path_to_Python>\python.exe syl.py <ссылка>
 Linux:      python syl.py <ссылка>
